@@ -1,0 +1,82 @@
+{% extends "components/base.html" %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas de Pacientes</title>
+    <!-- Incluir la librería de Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        #genderChart {
+            width: 700px !important;  /* Ajustar el tamaño del gráfico */
+            height: 700px !important; /* Ajustar el tamaño del gráfico */
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Estadísticas de Género de Pacientes</h1>
+
+    <div>
+        <h2>Resumen de Pacientes:</h2>
+        <p><strong>Total de Pacientes:</strong> {{ total_count }}</p>
+        <p><strong>Pacientes Masculinos:</strong> {{ masculino_count }} ({{ masculino_percentage|floatformat:2 }}%)</p>
+        <p><strong>Pacientes Femeninos:</strong> {{ femenino_count }} ({{ femenino_percentage|floatformat:2 }}%)</p>
+    </div>
+
+    <!-- Contenedor para centrar el gráfico -->
+    <div class="chart-container">
+        <canvas id="genderChart" width="400" height="400"></canvas>
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script>
+        // Datos dinámicos desde Django
+        var masculinoCount = {{ masculino_count }};
+        var femeninoCount = {{ femenino_count }};
+        var totalCount = {{ total_count }};
+        
+        // Crear el gráfico
+        var ctx = document.getElementById('genderChart').getContext('2d');
+        var genderChart = new Chart(ctx, {
+            type: 'bar',  // Tipo de gráfico: 'bar' para barras
+            data: {
+                labels: ['Masculino', 'Femenino'],
+                datasets: [{
+                    label: 'Distribución de Género',
+                    data: [masculinoCount, femeninoCount],  // Los datos
+                    backgroundColor: ['#36A2EB', '#FF6384'],  // Colores para las barras
+                    hoverBackgroundColor: ['#36A2EB', '#FF6384'],
+                    borderColor: ['#36A2EB', '#FF6384'], // Colores de borde
+                    borderWidth: 1,  // Ancho del borde de las barras
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true  // Asegura que el eje Y empiece en 0
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',  // Leyenda en la parte superior
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.label + ': ' + tooltipItem.raw + ' personas (' + ((tooltipItem.raw / totalCount) * 100).toFixed(2) + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+{% endblock %}

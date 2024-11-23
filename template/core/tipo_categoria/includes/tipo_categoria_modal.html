@@ -1,0 +1,39 @@
+<!-- Modal de Detalles del Tipo de Categoría -->
+<div class="modal fade" id="tipocategoriaModal" tabindex="-1" aria-labelledby="tipocategoriaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary bg-opacity-75">
+                <h5 class="modal-title text-white fw-bold" id="tipocategoriaModalLabel">
+                    <i class="fas fa-info-circle me-2"></i>Detalles del Tipo de Categoría
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    
+                    <!-- Columnas para los detalles del tipo de categoría -->
+                    <div class="col-md-8">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong><i class="fas fa-id-card me-2"></i>ID:</strong> <span id="tipo_categorias-id"></span></p>
+                                <p><strong><i class="fas fa-tag me-2"></i>Categoría de Examen:</strong> <span id="tipo_categorias-categoria_examen"></span></p>
+                                <p><strong><i class="fas fa-font me-2"></i>Nombre:</strong> <span id="tipo_categorias-nombre"></span></p>
+                                <p><strong><i class="fas fa-align-left me-2"></i>Descripción:</strong> <span id="tipo_categorias-descripcion"></span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong><i class="fas fa-dollar-sign me-2"></i>Valor Mínimo:</strong> <span id="tipo_categorias-valor_minimo"></span></p>
+                                <p><strong><i class="fas fa-dollar-sign me-2"></i>Valor Máximo:</strong> <span id="tipo_categorias-valor_maximo"></span></p>
+                                <p><strong><i class="fas fa-check-circle me-2"></i>Activo:</strong> <span id="tipo_categorias-activo"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

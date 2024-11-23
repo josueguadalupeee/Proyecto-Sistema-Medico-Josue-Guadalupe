@@ -1,0 +1,157 @@
+{% extends "components/base.html" %}
+{% load static %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'css/form.css' %}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+{% endblock %}
+
+{% block content %}
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-12 col-lg-12 px-md-4 main-content">
+        <!-- mensajes de error del formulario -->
+        {% include 'includes/message_error_form.html' %}
+        <!-- Formulario de empleado -->
+        <form method="post" enctype="multipart/form-data" class="py-4">
+            {% csrf_token %}  
+            <div class="card shadow p-4">
+                <h3 class="text-primary mb-4 fw-bold">{{ title1 }}</h3>
+                <div class="row g-0">
+                    <!-- Columna de la izquierda -->
+                    <div class="col-lg-4">
+                        <div id="imagenPreview" class="text-center mb-4">
+                            {% if form.instance.foto %}
+                                <img id="imagenSeleccionada" src="{{ form.instance.foto.url }}" class="rounded img-fluid" alt="Foto del empleado">
+                            {% else %}
+                                <img id="imagenSeleccionada" src="{% static 'img/empty.png' %}" class="rounded img-fluid" alt="Foto por defecto">
+                            {% endif %}
+                        </div>
+                        <div class="text-center">
+                            <label for="{{ form.foto.id_for_label }}" class="form-label fw-bold">{{ form.foto.label }}</label>
+                            {{ form.foto }}
+                        </div>
+                    </div>
+
+                    <!-- Columna de la derecha -->
+                    <div class="col-lg-8 px-2">
+                        <div class="row">
+                            <!-- Latitude and Longitude fields -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.latitud.id_for_label }}" class="form-label fw-bold">{{ form.latitud.label }}</label>
+                                {{ form.latitud }}
+                                {{ form.latitud.errors }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.longitud.id_for_label }}" class="form-label fw-bold">{{ form.longitud.label }}</label>
+                                {{ form.longitud }}
+                                {{ form.longitud.errors }}
+                            </div>
+
+                            <!-- Map container -->
+                            <div class="col-md-12 mb-4">
+                                <div id="map" style="height: 400px;"></div>
+                            </div>
+
+                            <!-- Other form fields -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.nombres.id_for_label }}" class="form-label fw-bold">{{ form.nombres.label }}</label>
+                                {{ form.nombres }}
+                                {{ form.nombres.errors }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.apellidos.id_for_label }}" class="form-label fw-bold">{{ form.apellidos.label }}</label>
+                                {{ form.apellidos }}
+                                {{ form.apellidos.errors }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.sexo.id_for_label }}" class="form-label fw-bold">{{ form.sexo.label }}</label>
+                                {{ form.sexo }}
+                                {{ form.sexo.errors }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.cedula.id_for_label }}" class="form-label fw-bold">{{ form.cedula.label }}</label>
+                                {{ form.cedula }}
+                                {{ form.cedula.errors }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.fecha_nacimiento.id_for_label }}" class="form-label fw-bold">{{ form.fecha_nacimiento.label }}</label>
+                                {{ form.fecha_nacimiento }}
+                                {{ form.fecha_nacimiento.errors }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.cargo.id_for_label }}" class="form-label fw-bold">{{ form.cargo.label }}</label>
+                                {{ form.cargo }}
+                                {{ form.cargo.errors }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.sueldo.id_for_label }}" class="form-label fw-bold">{{ form.sueldo.label }}</label>
+                                {{ form.sueldo }}
+                                {{ form.sueldo.errors }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.direccion.id_for_label }}" class="form-label fw-bold">{{ form.direccion.label }}</label>
+                                {{ form.direccion }}
+                                {{ form.direccion.errors }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.activo.id_for_label }}" class="form-label fw-bold">{{ form.activo.label }}</label>
+                                {{ form.activo }}
+                            </div>
+
+                            <!-- Submit and Cancel buttons -->
+                            <div class="d-flex justify-content-end mt-4">
+                                <button class="btn btn-outline-success me-2" type="submit">Grabar Empleado</button>
+                                <a class="btn btn-outline-warning" href="{% url 'core:Empleado_list' %}">Cancelar</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block js %}
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    var mapContainer = document.getElementById("map");
+    if (mapContainer) {
+        // Coordenadas iniciales
+        var latitud = parseFloat("{{ form.latitud.value|default:0.0 }}");
+        var longitud = parseFloat("{{ form.longitud.value|default:0.0 }}");
+
+        if (isNaN(latitud) || latitud < -90 || latitud > 90) latitud = 0.0;
+        if (isNaN(longitud) || longitud < -180 || longitud > 180) longitud = 0.0;
+
+        var map = L.map('map').setView([latitud, longitud], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        var marker = L.marker([latitud, longitud], { draggable: true }).addTo(map);
+
+        function roundToSixDecimals(value) {
+            return Math.round(value * 1000000) / 1000000;
+        }
+
+        marker.on('moveend', function(e) {
+            var newLat = roundToSixDecimals(e.target.getLatLng().lat);
+            var newLng = roundToSixDecimals(e.target.getLatLng().lng);
+            document.getElementById("id_Latitud").value = newLat;
+            document.getElementById("id_Longitud").value = newLng;
+        });
+
+        map.on('click', function(e) {
+            var newLat = roundToSixDecimals(e.latlng.lat);
+            var newLng = roundToSixDecimals(e.latlng.lng);
+            marker.setLatLng([newLat, newLng]);
+            document.getElementById("id_Latitud").value = newLat;
+            document.getElementById("id_Longitud").value = newLng;
+        });
+    }
+  });
+</script>
+{% endblock %}

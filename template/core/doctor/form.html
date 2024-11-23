@@ -1,0 +1,207 @@
+{% extends "components/base.html" %}
+{% load static %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'css/form.css' %}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+{% endblock %}
+
+{% block content %}
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-12 col-lg-12 px-md-4 main-content">
+        <!-- mensajes de error del formulario -->
+        {% include 'includes/message_error_form.html' %}
+        <!-- Formulario de doctor -->
+        <form method="post" enctype="multipart/form-data" class="py-4">
+            {% csrf_token %}  
+            <div class="card shadow p-4">
+                <h3 class="text-primary mb-4 fw-bold">{{ title1 }}</h3>
+                <div class="row g-0">
+                    <!-- Columna de la izquierda -->
+                    <div class="col-lg-4">
+                        <div id="imagenPreview" class="text-center mb-4">
+                            {% if form.instance.foto %}
+                                <img id="imagenSeleccionada" src="{{ form.instance.foto.url }}" class="rounded img-fluid" alt="Foto del doctor">
+                            {% else %}
+                                <img id="imagenSeleccionada" src="{% static 'img/empty.png' %}" class="rounded img-fluid" alt="Foto por defecto">
+                            {% endif %}
+                        </div>
+                        <div class="text-center">
+                            <label for="{{ form.foto.id_for_label }}" class="form-label fw-bold">{{ form.foto.label }}</label>
+                            {{ form.foto }}
+                        </div>
+                    </div>
+
+                    <!-- Columna de la derecha -->
+                    <div class="col-lg-8 px-2">
+                        <div class="row">
+                            <!-- Other form fields here... -->
+
+                            <!-- Latitude and Longitude fields -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.latitud.id_for_label }}" class="form-label fw-bold">{{ form.latitud.label }}</label>
+                                {{ form.latitud }}
+                                {{ form.latitud.errors }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.longitud.id_for_label }}" class="form-label fw-bold">{{ form.longitud.label }}</label>
+                                {{ form.longitud }}
+                                {{ form.longitud.errors }}
+                            </div>
+
+                            <!-- Map container -->
+                            <div class="col-md-12 mb-4">
+                                <div id="map" style="height: 400px;"></div>
+                            </div>
+
+                            <!-- Other form fields here... -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.nombres.id_for_label }}" class="form-label fw-bold">{{ form.nombres.label }}</label>
+                                {{ form.nombres }}
+                                {{ form.nombres.errors }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.apellidos.id_for_label }}" class="form-label fw-bold">{{ form.apellidos.label }}</label>
+                                {{ form.apellidos }}
+                                {{ form.apellidos.errors }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.sexo.id_for_label }}" class="form-label fw-bold">{{ form.sexo.label }}</label>
+                                {{ form.sexo }}
+                                {{ form.sexo.errors }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.cedula.id_for_label }}" class="form-label fw-bold">{{ form.cedula.label }}</label>
+                                {{ form.cedula }}
+                                {{ form.cedula.errors }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.fecha_nacimiento.id_for_label }}" class="form-label fw-bold">{{ form.fecha_nacimiento.label }}</label>
+                                {{ form.fecha_nacimiento }}
+                                {{ form.fecha_nacimiento.errors }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.direccion.id_for_label }}" class="form-label fw-bold">{{ form.direccion.label }}</label>
+                                {{ form.direccion }}
+                                {{ form.direccion.errors }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.codigoUnicoDoctor.id_for_label }}" class="form-label fw-bold">{{ form.codigoUnicoDoctor.label }}</label>
+                                {{ form.codigoUnicoDoctor }}
+                                {{ form.codigoUnicoDoctor.errors }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.especialidad.id_for_label }}" class="form-label fw-bold">{{ form.especialidad.label }}</label>
+                                {{ form.especialidad }}
+                                {{ form.especialidad.errors }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.telefonos.id_for_label }}" class="form-label fw-bold">{{ form.telefonos.label }}</label>
+                                {{ form.telefonos }}
+                                {{ form.telefonos.errors }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.email.id_for_label }}" class="form-label fw-bold">{{ form.email.label }}</label>
+                                {{ form.email }}
+                                {{ form.email.errors }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.horario_atencion.id_for_label }}" class="form-label fw-bold">{{ form.horario_atencion.label }}</label>
+                                {{ form.horario_atencion }}
+                                {{ form.horario_atencion.errors }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.duracion_cita.id_for_label }}" class="form-label fw-bold">{{ form.duracion_cita.label }}</label>
+                                {{ form.duracion_cita }}
+                                {{ form.duracion_cita.errors }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.curriculum.id_for_label }}" class="form-label fw-bold">{{ form.curriculum.label }}</label>
+                                {{ form.curriculum }}
+                                {{ form.curriculum.errors }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.firmaDigital.id_for_label }}" class="form-label fw-bold">{{ form.firmaDigital.label }}</label>
+                                {{ form.firmaDigital }}
+                                {{ form.firmaDigital.errors }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.activo.id_for_label }}" class="form-label fw-bold">{{ form.activo.label }}</label>
+                                {{ form.activo }}
+                            </div>
+
+                            <div class="d-flex justify-content-end mt-4">
+                                <button class="btn btn-outline-success me-2" type="submit">Grabar Doctor</button>
+                                <a class="btn btn-outline-warning" href="{% url 'core:doctor_list' %}">Cancelar</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+     </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block js %}
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    var mapContainer = document.getElementById("map");
+    if (mapContainer) {
+        // Obtener las coordenadas de latitud y longitud desde el formulario
+        var latitud = parseFloat("{{ form.latitud.value|default:0.0 }}");
+        var longitud = parseFloat("{{ form.longitud.value|default:0.0 }}");
+
+        // Validar la latitud y longitud para asegurarse de que están dentro de los rangos válidos
+        if (isNaN(latitud) || latitud < -90 || latitud > 90) {
+            latitud = 0.0;  // Si la latitud no es válida, usar valor predeterminado
+        }
+
+        if (isNaN(longitud) || longitud < -180 || longitud > 180) {
+            longitud = 0.0;  // Si la longitud no es válida, usar valor predeterminado
+        }
+
+        // Crear el mapa con las coordenadas válidas o predeterminadas
+        var map = L.map('map').setView([latitud, longitud], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Crear un marcador en la posición inicial
+        var marker = L.marker([latitud, longitud]).addTo(map);
+
+        // Función para redondear a 6 decimales
+        function roundToSixDecimals(value) {
+            return Math.round(value * 1000000) / 1000000;
+        }
+
+        // Actualizar los campos del formulario cuando se haga clic en el mapa
+        map.on('click', function(e) {
+            // Validar las nuevas coordenadas para asegurarse de que están dentro del rango correcto
+            var newLat = e.latlng.lat;
+            var newLng = e.latlng.lng;
+
+            if (newLat >= -90 && newLat <= 90 && newLng >= -180 && newLng <= 180) {
+                // Redondear las coordenadas a 6 decimales
+                newLat = roundToSixDecimals(newLat);
+                newLng = roundToSixDecimals(newLng);
+
+                // Si las coordenadas son válidas, actualizar el marcador y los campos del formulario
+                marker.setLatLng([newLat, newLng]);
+                document.getElementById("id_latitud").value = newLat;
+                document.getElementById("id_longitud").value = newLng;
+            } else {
+                alert("Las coordenadas seleccionadas están fuera de rango.");
+            }
+        });
+    }
+  });
+</script>
+{% endblock %}
+
+
+
+

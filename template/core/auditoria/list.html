@@ -1,0 +1,148 @@
+{% extends "components/base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-12 col-lg-12 px-md-4 main-content">
+      <div class="card mb-4">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="card-title mb-0 text-primary fw-bold">Listado de Auditorías</h3>
+          </div>
+
+          <!-- Search and Filter -->
+          <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between g-3 mb-4">
+            <form method="GET" action="{% url 'core:Auditoria_list' %}" class="d-flex flex-column flex-md-row gap-3 align-items-md-center">
+              <div class="col-md-6">
+                <input type="text" name="q" class="form-control search-box" value="{{ request.GET.q }}" placeholder="Buscar Auditoría">
+              </div>
+            </form>
+          </div>
+
+          <!-- Auditoria Table -->
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Usuario</th>
+                  <th>Tabla</th>
+                  <th>Acción</th>
+                  <th>Fecha</th>
+                  <th>Hora</th>
+                  <th>Estación</th>
+                  <th>Detalles</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for auditoria in auditorias %}
+                  <tr>
+                    <td>{{ auditoria.usuario.username }}</td>
+                    <td>{{ auditoria.tabla }}</td>
+                    <td>
+                      {% if auditoria.accion == 'A' %}
+                        Adición
+                      {% elif auditoria.accion == 'M' %}
+                        Modificación
+                      {% elif auditoria.accion == 'E' %}
+                        Eliminación
+                      {% endif %}
+                    </td>
+                    <td>{{ auditoria.fecha }}</td>
+                    <td>{{ auditoria.hora }}</td>
+                    <td>{{ auditoria.estacion }}</td>
+                    <td>
+                      <button class="btn btn-info btn-sm" title="Ver Detalles" onclick="verAuditoria('{{ auditoria.id }}');">
+                        <i class="fas fa-eye"></i>
+                      </button>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <nav class="d-flex justify-content-between align-items-center mt-4">
+            <p class="text-muted mb-0">{{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} Auditorías</p>
+            <ul class="pagination mb-0">
+              {% if page_obj.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?page=1"><i class="fas fa-chevron-left"></i></a>
+                </li>
+              {% endif %}
+              {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                  <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+              {% endfor %}
+              {% if page_obj.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page_obj.next_page_number }}"><i class="fas fa-chevron-right"></i></a>
+                </li>
+              {% endif %}
+            </ul>
+          </nav>
+          <!-- Fin de Pagination -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include 'includes/confirm_delete_modal.html' %}
+{% include 'core/auditoria/includes/auditoria_modal.html' %}
+{% endblock %}
+
+
+  
+
+
+{% block js %}
+  <script>
+    function confirmDelete(id, name, msg) {
+      // Actualiza el mensaje del modal
+      document.getElementById('modalMessage').innerText = `${msg} ${name}`;
+      // Actualiza la acción del formulario
+      const form = document.getElementById('deleteForm');
+      form.action = `/Cargo_delete/${id}/`; // Ajusta la URL según tu configuración
+      // Muestra el modal
+      const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+      modal.show();
+    }
+
+    function verAuditoria(id) {
+    fetch(`/Auditoria_detail/${id}/`)  // Verifica que el prefijo coincida con la URL de Django
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Llenar el modal con los datos del objeto AuditUser
+            document.getElementById('auditoria-id').innerText = data.id;
+            document.getElementById('auditoria-usuario').innerText = data.usuario;
+            document.getElementById('auditoria-tabla').innerText = data.tabla;
+            document.getElementById('auditoria-registroid').innerText = data.registroid;
+            document.getElementById('auditoria-accion').innerText = data.accion;
+            document.getElementById('auditoria-fecha').innerText = data.fecha;
+            document.getElementById('auditoria-hora').innerText = data.hora;
+            document.getElementById('auditoria-estacion').innerText = data.estacion;
+
+            // Mostrar el modal
+            const modal = new bootstrap.Modal(document.getElementById('auditoriaModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cargar los datos de la auditoría: ' + error.message);
+        });
+}
+
+
+  </script>
+{% endblock %}
+
+
+
+

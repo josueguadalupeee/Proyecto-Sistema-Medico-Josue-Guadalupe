@@ -1,0 +1,95 @@
+{% extends "components/base.html" %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas de Empleados por Cargo</title>
+    <!-- Incluir la librería de Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        #cargoChart {
+            width: 600px !important;  /* Ajustar el tamaño del gráfico */
+            height: 400px !important; /* Ajustar el tamaño del gráfico */
+            margin: 0 auto;  /* Centrar el gráfico */
+        }
+    </style>
+</head>
+<body>
+
+    <div style="margin: 20px;">
+        <h2>Resumen de Empleados:</h2>
+        <!-- Tabla con un estilo mejorado -->
+        <table style="width: 100%; border-collapse: collapse; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+            <thead style="background-color: hsl(180, 83%, 14%); color: white;">
+                <tr>
+                    <th style="padding: 12px; text-align: left; font-size: 16px;">Cargo</th>
+                    <th style="padding: 12px; text-align: left; font-size: 16px;">Cantidad de Empleados</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in empleados_por_cargo %}
+                <tr style="background-color: #f9f9f9;">
+                    <td style="padding: 12px; border-bottom: 1px solid #ddd;">{{ item.cargo__nombre }}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #ddd;">{{ item.cantidad }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2" style="padding: 12px; text-align: center; font-style: italic;">No se encontraron empleados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+
+    <!-- Contenedor para el gráfico -->
+    <div class="chart-container">
+        <canvas id="cargoChart"></canvas>
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script>
+        var labels = [];
+        var data = [];
+
+        {% for item in empleados_por_cargo %}
+            labels.push("{{ item.cargo__nombre }}");
+            data.push({{ item.cantidad }});
+        {% endfor %}
+
+        var ctx = document.getElementById('cargoChart').getContext('2d');
+        var cargoChart = new Chart(ctx, {
+            type: 'bar',  // Tipo de gráfico: 'bar' para barras
+            data: {
+                labels: labels,  // Las etiquetas serán los nombres de los cargos
+                datasets: [{
+                    label: 'Empleados por Cargo',
+                    data: data,  // Los datos son las cantidades de empleados
+                    backgroundColor: '#36A2EB',  // Color de fondo de las barras
+                    hoverBackgroundColor: '#FF6384',  // Color cuando se pasa el mouse
+                    borderColor: '#36A2EB',  // Color de borde de las barras
+                    borderWidth: 1,  // Ancho del borde de las barras
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true  // Asegura que el eje Y empiece en 0
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',  // Coloca la leyenda en la parte superior
+                    }
+                }
+            }
+        });
+    </script>
+{% endblock %}

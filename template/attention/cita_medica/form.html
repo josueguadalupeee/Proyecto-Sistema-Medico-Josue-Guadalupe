@@ -1,0 +1,181 @@
+{% extends "components/base.html" %}
+{% load static %}
+
+{% block css %}
+    <style>
+        /* Estilo para los recuadros de los campos */
+        .form-control {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 8px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            width: 100%; /* Hacer los campos más pequeños */
+        }
+
+        .form-control:focus {
+            border-color: #66afe9;
+            box-shadow: 0 0 8px rgba(102, 175, 233, 0.6);
+            outline: none;
+        }
+
+        .form-select {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 8px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            width: 100%; /* Hacer los campos más pequeños */
+        }
+
+        .form-select:focus {
+            border-color: #66afe9;
+            box-shadow: 0 0 8px rgba(102, 175, 233, 0.6);
+            outline: none;
+        }
+
+        /* Estilo para las columnas */
+        .card {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h3 {
+            font-size: 1.5rem;
+            color: #007bff;
+        }
+
+        /* Aumentar espacio entre las columnas */
+        .col-lg-6 {
+            padding: 0 15px; /* Agregar espacio entre las columnas */
+        }
+
+        .mb-3 {
+            margin-bottom: 1rem;
+        }
+
+        .text-danger {
+            font-size: 0.875rem;
+            color: #dc3545;
+        }
+
+        /* Estilo de los botones */
+        .d-flex {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .d-flex .btn {
+            padding: 8px 16px;
+            font-size: 1rem;
+            border-radius: 5px;
+        }
+
+        .d-flex .btn-outline-success {
+            border-color: #28a745;
+            color: #28a745;
+        }
+
+        .d-flex .btn-outline-success:hover {
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        .d-flex .btn-outline-warning {
+            border-color: #ffc107;
+            color: #ffc107;
+        }
+
+        .d-flex .btn-outline-warning:hover {
+            background-color: #ffc107;
+            color: #fff;
+        }
+
+        /* Estilo responsive */
+        @media (max-width: 768px) {
+            .col-lg-6 {
+                width: 100%;
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-12 col-lg-12 px-md-4 main-content">
+        <!-- mensajes de error del formulario -->
+        {% include 'includes/message_error_form.html' %}
+        
+        <!-- Formulario de Cita Médica -->
+        <form method="post" enctype="multipart/form-data" class="py-4">
+            {% csrf_token %}
+            <div class="card shadow p-4">
+                <h3 class="text-primary mb-4 fw-bold">{{ title1 }}</h3>
+                <div class="row g-0">
+                    <!-- Columna de la izquierda -->
+                    <div class="col-lg-6">
+                        <div class="mb-3">
+                            <label for="{{ form.paciente.id_for_label }}" class="form-label fw-bold">{{ form.paciente.label }}</label>
+                            {{ form.paciente }}
+                            {% if form.paciente.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.paciente.errors %}
+                                        <p>{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.fecha.id_for_label }}" class="form-label fw-bold">{{ form.fecha.label }}</label>
+                            {{ form.fecha }}
+                            {% if form.fecha.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.fecha.errors %}
+                                        <p>{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Columna de la derecha -->
+                    <div class="col-lg-6">
+                        <div class="mb-3">
+                            <label for="{{ form.hora_cita.id_for_label }}" class="form-label fw-bold">{{ form.hora_cita.label }}</label>
+                            {{ form.hora_cita }}
+                            {% if form.hora_cita.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.hora_cita.errors %}
+                                        <p>{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.estado.id_for_label }}" class="form-label fw-bold">{{ form.estado.label }}</label>
+                            {{ form.estado }}
+                            {% if form.estado.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.estado.errors %}
+                                        <p>{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end mt-4">
+                    <button class="btn btn-outline-success me-2" type="submit">Grabar Cita</button>
+                    <a class="btn btn-outline-warning" href="{% url 'attention:Cita_medica_list' %}">Cancelar</a>
+                </div>
+            </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}
