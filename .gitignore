@@ -1,0 +1,25 @@
+# Variables de entorno (contraseñas y claves)
+.env
+.env.*
+!.env.example
+
+# Entornos virtuales de Python
+ent/
+venv/
+.venv/
+env/
+
+# Archivos compilados de Python
+__pycache__/
+*.py[cod]
+
+# Bases de datos locales
+db.sqlite3
+*.sqlite3
+
+# Archivos subidos por los usuarios (fotos, currículums, resultados)
+media/
+
+# Sistema operativo
+Thumbs.db
+.DS_Store

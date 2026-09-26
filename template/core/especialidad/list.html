@@ -1,0 +1,166 @@
+{% extends "components/base.html" %}
+
+{% block content %}
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-12 col-lg-12 px-md-4 main-content">
+        <div class="card mb-4">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h3 class="card-title mb-0 text-primary fw-bold">{{ title1 }}</h3>
+            </div>
+
+            <!-- Search and Filter -->
+            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between g-3 mb-4">
+              <form method="GET" action="{% url 'core:Especialidad_list' %}" class="d-flex flex-column flex-md-row gap-3 align-items-md-center">
+                <div class="col-md-6">
+                  <input type="text" name="q" class="form-control search-box" value="{{ request.GET.q }}" placeholder="Buscar especialidad...">
+                </div>
+              </form>
+              <a class="btn btn-primary mt-3 mt-md-0" href="{% url 'core:Especialidad_create' %}">
+                <i class="fas fa-plus me-2"></i>Nueva Especialidad
+              </a>
+            </div>
+
+            <!-- Especialidad Table -->
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>Nombre de Especialidad</th>
+                    <th>Descripción</th>
+                    <th>Activo</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in especialidades %}
+                    <tr>
+                      <td>{{ item.nombre }}</td>
+                      <td>{{ item.descripcion }}</td>
+                      <td>
+                          {% if item.activo %}
+                            <i class="fas fa-check" style="color: green;"></i>  <!-- Ícono de verde si está activo -->
+                          {% else %}
+                            <i class="fas fa-times" style="color: red;"></i>  <!-- Ícono de rojo si está inactivo -->
+                          {% endif %}
+                      </td>
+                      <td>
+                        <div class="action-buttons d-flex gap-2">
+                          <button class="btn btn-info btn-sm" title="Ver Detalles" onclick="showDetails('{{ item.id }}', '{{ item.nombre }}', '{{ item.descripcion }}','{{ item.activo }}');">
+                            <i class="fas fa-eye"></i>
+                          </button>
+                          <a href="{% url 'core:Especialidad_update' item.id %}" class="btn btn-success btn-sm text-white" title="Editar Especialidad">
+                            <i class="fas fa-edit"></i>
+                          </a>
+                          {% with id=item.id name=item.nombre msg="¿Está seguro de eliminar la especialidad?" %}
+                            <button class="btn btn-danger" title="Eliminar Especialidad" onclick="confirmDelete('{{ id }}','{{ name }}','{{ msg|escapejs }}');">
+                              <i class="fa-solid fa-trash"></i>
+                            </button>
+                          {% endwith %}
+                        </div>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination -->
+            <nav class="d-flex justify-content-between align-items-center mt-4">
+              <p class="text-muted mb-0">{{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} especialidades</p>
+              <ul class="pagination mb-0">
+                {% if page_obj.has_previous %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page=1"><i class="fas fa-chevron-left"></i></a>
+                  </li>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                  <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                  </li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}"><i class="fas fa-chevron-right"></i></a>
+                  </li>
+                {% endif %}
+              </ul>
+            </nav>
+            <!-- Fin de Pagination -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Detalles de la Especialidad -->
+  <div class="modal fade" id="EspecialidadModal" tabindex="-1" aria-labelledby="EspecialidadModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-primary bg-opacity-75">
+          <h5 class="modal-title text-white fw-bold" id="Especialidad_ModalLabel">
+            <i class="fas fa-user-circle me-2"></i>Detalles de la Especialidad
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="col-md-8">
+            <div class="row">
+              <div class="col-md-6">
+                <p><strong><i class="fas fa-id-card me-2"></i>ID:</strong> <span id="especialidad-id"></span></p>
+                <p><strong><i class="fas fa-user me-2"></i>Nombre:</strong> <span id="especialidad-nombre"></span></p>
+                <p><strong><i class="fas fa-user me-2"></i>Descripción:</strong> <span id="especialidad-descripcion"></span></p>
+                <p><strong><i class="fas fa-user me-2"></i>Activo:</strong> <span id="especialidad-activo"></span></p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times me-2"></i>Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal genérico de eliminación -->
+  {% include 'includes/confirm_delete_modal.html' %}
+{% endblock %}
+
+{% block js %}
+  <script>
+    function confirmDelete(id, name, msg) {
+      // Actualiza el mensaje del modal
+      document.getElementById('modalMessage').innerText = `${msg} ${name}`;
+      // Actualiza la acción del formulario
+      const form = document.getElementById('deleteForm');
+      form.action = `/Especialidad_delete/${id}/`; // Ajusta la URL según tu configuración
+      // Muestra el modal
+      const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+      modal.show();
+    }
+
+    function showDetails(id, nombre, descripcion, activo) {
+        // Llena el modal con los detalles
+        document.getElementById('especialidad-id').innerText = id;
+        document.getElementById('especialidad-nombre').innerText = nombre;
+        document.getElementById('especialidad-descripcion').innerText = descripcion;
+        document.getElementById('especialidad-activo').innerText = activo // Asumiendo que activo es un booleano
+
+        const activoSpan = document.getElementById('especialidad-activo');
+            if (activo) {
+                // Si está activo, mostrar el ícono verde (check)
+                activoSpan.innerHTML = '<i class="fas fa-check" style="color: green;"></i>';
+            } else {
+                // Si está inactivo, mostrar el ícono rojo (X)
+                activoSpan.innerHTML = '<i class="fas fa-times" style="color: red;"></i>';
+            }
+
+        // Muestra el modal
+        const modal = new bootstrap.Modal(document.getElementById('EspecialidadModal'));
+        modal.show();
+    }
+  </script>
+{% endblock %}

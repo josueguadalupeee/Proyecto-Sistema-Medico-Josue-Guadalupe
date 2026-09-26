@@ -1,0 +1,179 @@
+{% extends "components/base.html" %}
+
+{% block content %}
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Main Content -->
+      <div class="col-md-12 col-lg-12 px-md-4 main-content">
+
+        <!-- Doctor List Content -->
+        <div class="card mb-4">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h3 class="card-title mb-0 text-primary fw-bold">Listado de Tipos de Categoria de Examen</h3>
+            </div>
+
+            <!-- Search and Filter -->
+            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between g-3 mb-4">
+              <form method="GET" action="{% url 'core:Tipo_categoria_list' %}" class="d-flex flex-column flex-md-row gap-3 align-items-md-center">
+                <div class="col-md-6">
+                  <input type="text" name="q" class="form-control search-box" value="{{ request.GET.q }}" placeholder="Buscar Tipo de Categoria">
+                </div>
+                <div class="col-md-6">
+                  <div class="col-md-6">
+                    <select class="form-select" name="cargo">
+                      <option value="T">Todas</option>
+                      {% for categoria in categorias %}
+                        <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>  <!-- Asegúrate que el campo sea correcto -->
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Buscar</button>
+                
+              </form>
+              <a class="btn btn-primary mt-3 mt-md-0" href="{% url 'core:Tipo_categoria_create' %}">
+                <i class="fas fa-plus me-2"></i>Nuevo Empleado
+              </a>
+            </div>
+
+            <!-- Doctor Table -->
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>Categoria de Examen</th>
+                    <th>nombre</th>
+                    <th>Valor minimo</th>
+                    <th>Valor maximo</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in tipos %}
+                    <tr>
+                      <td>
+                        {% if item.categoria_examen %}
+                          <span class="badge bg-secondary">{{ item.categoria_examen.nombre }}</span>
+                        {% else %}
+                          <span>No tiene Categoria de Examen</span>
+                        {% endif %}
+                      </td>
+                      <td>{{ item.nombre }}</td>
+                      <td>{{ item.valor_minimo }}</td>
+                      <td>{{ item.valor_maximo }}</td>
+                      
+                      <td>
+                        <div class="action-buttons d-flex gap-2">
+                          <button class="btn btn-primary btn-sm" title="Detalle Empleado" onclick="verTipo_categoria('{{ item.id }}')">
+                            <i class="fas fa-eye"></i>
+                          </button>
+                          <a href="{% url 'core:Tipo_categoria_update' item.id %}" class="btn btn-success btn-sm text-white" title="Editar Empleado">
+                            <i class="fas fa-edit"></i>
+                          </a>
+                          {% with id=item.id name=item.nombres msg="¿Está seguro de eliminar el Tipo de Categoria de Examen?" %}
+                            <button class="btn btn-danger" title="Eliminar Empleado" onclick="confirmDelete('{{ id }}','{{ name }}','{{ msg|escapejs }}');">
+                              <i class="fa-solid fa-trash"></i>
+                            </button>
+                          {% endwith %}
+                        </div>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination -->
+            <nav class="d-flex justify-content-between align-items-center mt-4">
+              <p class="text-muted mb-0">{{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} empleados</p>
+              <ul class="pagination mb-0">
+                {% if page_obj.has_previous %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page=1"><i class="fas fa-chevron-left"></i></a>
+                  </li>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                  <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                  </li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}"><i class="fas fa-chevron-right"></i></a>
+                  </li>
+                {% endif %}
+              </ul>
+            </nav>
+            <!-- Fin de Pagination -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- añade el modal generico de eliminacion -->
+{% include 'includes/confirm_delete_modal.html' %}
+  <!-- añade el modal particular de los datos de detalle del doctor -->
+{% include 'core/tipo_categoria/includes/tipo_categoria_modal.html' %}
+
+{% endblock %}
+
+{% block js %}
+<script>
+  /* funciones del modal eliminar */
+  function confirmDelete(id, name, msg) {
+    // Actualiza el mensaje del modal
+    document.getElementById('modalMessage').innerText = `${msg} ${name}`;
+
+    // Actualiza la acción del formulario
+    const form = document.getElementById('deleteForm');
+    form.action = `/Tipo_categoria_delete/${id}/`; // Ajusta la URL según tu configuración
+
+    // Muestra el modal
+    const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+    modal.show();
+  }
+
+  /* funciones del modal detalle */
+  function verTipo_categoria(id) {
+    fetch(`/Tipo_categoria_detail/${id}/`)  // Verifica que el prefijo coincida exactamente con la URL de Django
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Llenar el modal con los datos
+            document.getElementById('tipo_categorias-id').textContent = data.id;
+            document.getElementById('tipo_categorias-categoria_examen').textContent = data.categoria_examen;
+            document.getElementById('tipo_categorias-nombre').textContent = data.nombre;
+            document.getElementById('tipo_categorias-descripcion').textContent = data.descripcion;
+            document.getElementById('tipo_categorias-valor_minimo').textContent = data.valor_minimo; // Campo para el cargo del empleado
+            document.getElementById('tipo_categorias-valor_maximo').textContent = data.valor_maximo;
+            document.getElementById('tipo_categorias-activo').textContent = data.activo;
+
+            const activoSpan = document.getElementById('tipo_categorias-activo');
+            if (data.activo) {
+                // Si está activo, mostrar el ícono verde (check)
+                activoSpan.innerHTML = '<i class="fas fa-check" style="color: green;"></i>';
+            } else {
+                // Si está inactivo, mostrar el ícono rojo (X)
+                activoSpan.innerHTML = '<i class="fas fa-times" style="color: red;"></i>';
+            }
+
+
+            // Mostrar el modal
+            const modal = new bootstrap.Modal(document.getElementById('tipocategoriaModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cargar los datos del Empleado: ' + error.message);
+        });
+}
+
+</script>
+{% endblock %}

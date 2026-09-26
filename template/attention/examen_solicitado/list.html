@@ -1,0 +1,206 @@
+{% extends "components/base.html" %}
+
+{% block content %}
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Main Content -->
+      <div class="col-md-12 col-lg-12 px-md-4 main-content">
+        <!-- Citas Content -->
+        <div class="card mb-4">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h3 class="card-title mb-0 text-primary fw-bold">Listado de Examenes</h3>
+            </div>
+
+            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between g-3 mb-4">
+              <form method="GET" action="{% url 'attention:Examen_solicitado_list' %}" class="d-flex flex-column flex-md-row gap-3 align-items-md-center">
+                <!-- Campo para buscar por cédula -->
+                <div class="col-md-4">
+                  <input type="text" name="q" class="form-control search-box" value="{{ request.GET.q }}" placeholder="Buscar Examen por su nombre">
+                </div>
+
+                <!-- Campo para buscar por estado -->
+                <div class="col-md-4">
+                  <select name="estado" class="form-select" aria-label="Buscar por Estado">
+                    <option value="T" {% if request.GET.estado == "T" %}selected{% endif %}>Todos</option>
+                    <option value="S" {% if request.GET.estado == "S" %}selected{% endif %}>Solicitado</option>
+                    <option value="R" {% if request.GET.estado == "R" %}selected{% endif %}>Realizado</option>
+                  </select>
+                </div>
+
+                <!-- Botones de búsqueda y reset -->
+                
+                  <button type="button" class="btn btn-secondary" onclick="resetSearch()">Borrar</button>
+                  <button type="submit" class="btn btn-primary">Buscar</button>
+                
+              </form>
+
+              <!-- Botón para agregar nueva cita -->
+              <a class="btn btn-primary mt-3 mt-md-0" href="{% url 'attention:Examen_solicitado_create' %}">
+                <i class="fas fa-plus me-2"></i>Nuevo Examen
+              </a>
+            </div>
+
+            <!-- Citas Table -->
+            <div class="table-responsive mt-4">
+              <table class="table table-hover align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>Categoria del Examen</th>
+                    <th>Nombre del Examen</th>
+                    <th>Paciente</th>
+                    <th>Cedula</th>
+                    <th>Fecha Solicitud</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in examenes %}
+                    <tr>
+                      <td>
+                        {% if item.nombre_examen.all %}
+                          <!-- Mostrar las categorías en una línea y sin duplicados -->
+                          {% with ultima_categoria="" %}
+                            {% for nombre_examen in item.nombre_examen.all %}
+                              {% if nombre_examen.categoria_examen != ultima_categoria %}
+                                {% if not forloop.first %}, {% endif %}
+                                <span class="badge bg-secondary">{{ nombre_examen.categoria_examen }}</span>
+                                {% with ultima_categoria=nombre_examen.categoria_examen %}
+                                {% endwith %}
+                              {% endif %}
+                            {% endfor %}
+                          {% endwith %}
+                          <br>
+                          <!-- Mostrar el ID una sola vez, debajo de las categorías -->
+                          <small class="text-muted">{{ item.id }}</small>
+                        {% else %}
+                          <span>No tiene Categoria de Examen</span>
+                        {% endif %}
+                      </td>
+                      
+                      <td>
+                        {% if item.nombre_examen.all %}
+                          {% for nombre_examen in item.nombre_examen.all %}
+                            <span class="badge bg-secondary">{{ nombre_examen.nombre }}</span>
+                          {% endfor %}
+                        {% else %}
+                          <span>No tiene Nombre examen</span>
+                        {% endif %}
+                      </td>
+                      <td>{{ item.paciente.nombres }} {{ item.paciente.apellidos }}</td>
+                      <td>{{ item.paciente.cedula }}</td>
+                      <td>{{ item.fecha_solicitud }}</td>
+                      <td>
+                        {% if item.estado == 'S' %}
+                          <span class="badge bg-warning">Solicitado</span>
+                        {% elif item.estado == 'R' %}
+                          <span class="badge bg-success">Realizado</span>
+                        {% endif %}
+                      </td>
+                      <td>
+                        <div class="action-buttons d-flex gap-2">
+                          <button class="btn btn-info btn-sm" title="Ver Detalles" onclick="verCita('{{ item.id }}');">
+                            <i class="fas fa-eye"></i>
+                          </button>
+                          <a href="{% url 'attention:Examen_solicitado_update' item.id %}" class="btn btn-success btn-sm text-white" title="Editar cita">
+                            <i class="fas fa-edit"></i>
+                          </a>
+                          <button class="btn btn-danger btn-sm" title="Eliminar Examen" onclick="confirmDelete('{{ item.id }}', '{{ item.paciente.nombres }}', '¿Está seguro de eliminar esta cita?');">
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination -->
+            <nav class="d-flex justify-content-between align-items-center mt-4">
+              <p class="text-muted mb-0">{{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} empleados</p>
+              <ul class="pagination mb-0">
+                {% if page_obj.has_previous %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page=1"><i class="fas fa-chevron-left"></i></a>
+                  </li>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                  <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                  </li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}"><i class="fas fa-chevron-right"></i></a>
+                  </li>
+                {% endif %}
+              </ul>
+            </nav>
+            <!-- Fin de Pagination -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- añade el modal generico de eliminacion -->
+{% include 'includes/confirm_delete_modal.html' %}
+  <!-- añade el modal particular de los datos de detalle del doctor -->
+{% include 'attention/examen_solicitado/includes/examen_solicitado_modal.html' %}
+
+{% endblock %}
+
+{% block js %}
+<script>
+  function resetSearch() {
+    // Restablece el formulario con el id 'search-form' y envíalo vacío para limpiar la búsqueda
+      document.querySelector('input[name="q"]').value = '';
+      document.querySelector('select[name="estado"]').value = 'T';
+      window.location.href = window.location.pathname;
+  }
+
+
+  /* funciones del modal eliminar */
+  function confirmDelete(id, name, msg) {
+    // Actualiza el mensaje del modal
+    document.getElementById('modalMessage').innerText = `${msg} ${name}`;
+
+    // Actualiza la acción del formulario
+    const form = document.getElementById('deleteForm');
+    form.action = `/Examen_solicitado_delete/${id}/`; // Ajusta la URL según tu configuración
+
+    // Muestra el modal
+    const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+    modal.show();
+  }
+
+  /* funciones del modal detalle */
+  function verCita(id) {
+    fetch(`/Examen_solicitado_detail/${id}/`)  // Verifica que el prefijo coincida exactamente con la URL de Django
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Llenar el modal con los datos
+            document.getElementById('examen-id').textContent = data.id;
+            document.getElementById('examen-nombre_examen').textContent = data.nombre_examen;
+            document.getElementById('examen-paciente').textContent = data.paciente;
+            document.getElementById('examen-fecha_solicitud').textContent = data.fecha_solicitud;
+            document.getElementById('examen-estado').textContent = data.estado; // Campo para el cargo del empleado
+            // Mostrar el modal
+            const modal = new bootstrap.Modal(document.getElementById('examenModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cargar los datos del Examen: ' + error.message);
+        });
+}
+
+</script>
+{% endblock %}
